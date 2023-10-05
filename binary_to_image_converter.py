@@ -7,7 +7,11 @@ image = Image.new('RGB', (256, 256))
 with open('output_image.txt', 'r') as file:
     lines = file.readlines()
 
-# Parse each line and set the pixel values in the image
+# Initialize x and y coordinates
+x = 0
+y = 0
+
+# Iterate through each line and set the pixel values in the image
 for line in lines:
     tokens = line.split()
     if len(tokens) != 4:
@@ -23,14 +27,21 @@ for line in lines:
         print("Error:", e, "in line:", line)
         continue
 
-    print(f"Time={time}, R={r}, G={g}, B={b}")  # Debug print
+    # Normalize RGB values from 0-255
+    r = r & 0xFF
+    g = g & 0xFF
+    b = b & 0xFF
 
-    # Calculate pixel coordinates from the time value
-    x = time % 256
-    y = time // 256
+    print(f"Time={time}, R={r}, G={g}, B={b}")  # Debug print
 
     # Set the RGB value in the image
     image.putpixel((x, y), (r, g, b))
+
+    # Update x and y coordinates
+    x += 1
+    if x == 256:
+        x = 0
+        y += 1
 
 # Save the image to a file
 image.save('output_image.png')
