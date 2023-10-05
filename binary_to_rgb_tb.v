@@ -1,26 +1,34 @@
 `timescale 1ns/1ns
 
-module BinaryToPNG_tb;
+module BinaryToRGB_tb;
 
   reg clk;
   reg rst;
   reg [7:0] binary_image_pixel;
-  wire [7:0] png_pixel_r;
-  wire [7:0] png_pixel_g;
-  wire [7:0] png_pixel_b;
-  wire png_pixel_valid;
+  wire [7:0] rgb_pixel_r;
+  wire [7:0] rgb_pixel_g;
+  wire [7:0] rgb_pixel_b;
+  wire rgb_pixel_valid;
+  reg [7:0] rgb_pixel_array [0:9][0:9]; 
 
-  BinaryToPNG uut (
+  BinaryToRGB uut (
     .clk(clk),
     .rst(rst),
     .binary_image_pixel(binary_image_pixel),
-    .png_pixel_r(png_pixel_r),
-    .png_pixel_g(png_pixel_g),
-    .png_pixel_b(png_pixel_b),
-    .png_pixel_valid(png_pixel_valid)
+    .rgb_pixel_r(rgb_pixel_r),
+    .rgb_pixel_g(rgb_pixel_g),
+    .rgb_pixel_b(rgb_pixel_b),
+    .rgb_pixel_valid(rgb_pixel_valid),
+    .rgb_pixel_array(rgb_pixel_array)
   );
 
-  reg [31:0] file_handle;
+
+  localparam WIDTH = 10;
+  localparam HEIGHT = 10;
+
+
+  integer row;
+  integer col;
 
   initial begin
     clk = 0;
@@ -34,20 +42,46 @@ module BinaryToPNG_tb;
 
   initial begin
     #30;
-    file_handle = $fopen("output_image.txt", "w");
 
-    repeat (20) begin
-      #50;
-      binary_image_pixel = $random;
 
-      #10 $display("Time=%t, Test Case: PNG Pixel R=%h, G=%h, B=%h, Valid=%b",
-                $time, png_pixel_r, png_pixel_g, png_pixel_b, png_pixel_valid);
+    row = 0;
+    col = 0;
 
-      $fdisplay(file_handle, "%t %h %h %h %b", $time, png_pixel_r, png_pixel_g, png_pixel_b, png_pixel_valid);
+
+    while (row < WIDTH) begin
+      while (col < HEIGHT) begin
+
+        binary_image_pixel = $random;
+
+
+        #5;
+
+
+        if (rgb_pixel_valid) begin
+
+          rgb_pixel_array[row][col] = {rgb_pixel_r, rgb_pixel_g, rgb_pixel_b};
+          
+
+          col = col + 1;
+        end
+
+      end
+      col = 0;
+      row = row + 1;
     end
+    
 
-    $fclose(file_handle);
-    #100 $finish;
+    for (row = 0; row < WIDTH; row = row + 1) begin
+      for (col = 0; col < HEIGHT; col = col + 1) begin
+        $display("Pixel at row=%d, col=%d: R=%h, G=%h, B=%h", row, col, rgb_pixel_array[row][col][0], rgb_pixel_array[row][col][1], rgb_pixel_array[row][col][2]);
+      end
+    end
+    
+
+    $display("Image data display complete");
+    
+
+    $finish;
   end
 
 endmodule
