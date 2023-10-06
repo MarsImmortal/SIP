@@ -8,7 +8,6 @@ module BinaryToPNG_tb;
   wire [7:0] png_pixel_r;
   wire [7:0] png_pixel_g;
   wire [7:0] png_pixel_b;
-  wire png_pixel_valid;
 
   BinaryToPNG uut (
     .clk(clk),
@@ -16,11 +15,10 @@ module BinaryToPNG_tb;
     .binary_image_pixel(binary_image_pixel),
     .png_pixel_r(png_pixel_r),
     .png_pixel_g(png_pixel_g),
-    .png_pixel_b(png_pixel_b),
-    .png_pixel_valid(png_pixel_valid)
+    .png_pixel_b(png_pixel_b)
   );
 
-   reg [31:0] file_handle;
+  reg [31:0] file_handle;
 
   initial begin
     clk = 0;
@@ -36,14 +34,14 @@ module BinaryToPNG_tb;
     #30;
     file_handle = $fopen("output_image.txt", "w");
 
-    repeat (20) begin
+    repeat (256*256) begin  // Update for 256x256 image
       #50;
       binary_image_pixel = $random;
 
-      #10 $display("Time=%t, Test Case: PNG Pixel R=%h, G=%h, B=%h, Valid=%b",
-                $time, png_pixel_r, png_pixel_g, png_pixel_b, png_pixel_valid);
+      #10 $display("Time=%t, Test Case: PNG Pixel R=%h, G=%h, B=%h",
+                $time, png_pixel_r, png_pixel_g, png_pixel_b);
 
-                $fdisplay(file_handle, "%t %h %h %h %b", $time, png_pixel_r, png_pixel_g, png_pixel_b, png_pixel_valid);
+      $fdisplay(file_handle, "%t %h %h %h", $time, png_pixel_r, png_pixel_g, png_pixel_b);
     end
 
     $fclose(file_handle);
