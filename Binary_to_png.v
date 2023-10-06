@@ -1,41 +1,45 @@
-`timescale 1ns/1ps
-
 module BinaryToPNG (
-    input wire clk,
-    input wire rst,
-    input wire [7:0] binary_pixel,  
-    output reg [7:0] png_pixel,    
-    output reg png_valid           
+  input wire clk,
+  input wire rst,
+  input wire [7:0] binary_image_pixel,
+  output wire [7:0] png_pixel_r,
+  output wire [7:0] png_pixel_g,
+  output wire [7:0] png_pixel_b
 );
-    reg [7:0] png_buffer [0:2]; 
-    reg [2:0] png_state;         
-    wire is_first_pixel = (png_state == 0);
 
-    always @(posedge clk or negedge rst) begin
-        if (!rst) begin
-            png_state <= 0;
-        end else if (is_first_pixel) begin
-            png_buffer[0] <= binary_pixel;
-            png_state <= 1;
-        end else if (png_state == 1) begin
-            png_buffer[1] <= binary_pixel;
-            png_state <= 2;
-        end else if (png_state == 2) begin
-            png_buffer[2] <= binary_pixel;
-            png_state <= 0;
-        end
-    end
+  reg [7:0] image_buffer [0:255][0:255];
+  reg [7:0] current_pixel_r;
+  reg [7:0] current_pixel_g;
+  reg [7:0] current_pixel_b;
+  reg [7:0] row_counter;
+  reg [7:0] col_counter;
 
+  always @(posedge clk or posedge rst) begin
+    if (rst) begin
+      row_counter <= 8'b0;
+      col_counter <= 8'b0;
+      current_pixel_r <= 8'b0;
+      current_pixel_g <= 8'b0;
+      current_pixel_b <= 8'b0;
+    end else begin
+      if (row_counter < 256 && col_counter < 256) begin
+        image_buffer[row_counter][col_counter] <= binary_image_pixel;
+        current_pixel_r <= binary_image_pixel;
+        current_pixel_g <= binary_image_pixel;
+        current_pixel_b <= binary_image_pixel;
+      end;
 
-    always @(*) begin
-        if (is_first_pixel) begin
-            png_pixel = binary_pixel;  
-            png_valid = 1'b1;          
-        end else begin
-            png_pixel = 8'h00;         
-            png_valid = 1'b0;          
-        end
-    end
+      if (col_counter < 255) begin
+        col_counter <= col_counter + 1;
+      end else if (row_counter < 255) begin
+        col_counter <= 0;
+        row_counter <= row_counter + 1;
+      end;
+    end;
+  end
 
-    
+  assign png_pixel_r = current_pixel_r;
+  assign png_pixel_g = current_pixel_g;
+  assign png_pixel_b = current_pixel_b;
+
 endmodule

@@ -1,60 +1,51 @@
-module testbench;
+`timescale 1ns/1ns
+
+module BinaryToPNG_tb;
 
   reg clk;
   reg rst;
-  reg [7:0] binary_pixel;
-  wire [7:0] png_pixel;
-  wire png_valid;
+  reg [7:0] binary_image_pixel;
+  wire [7:0] png_pixel_r;
+  wire [7:0] png_pixel_g;
+  wire [7:0] png_pixel_b;
 
   BinaryToPNG uut (
     .clk(clk),
     .rst(rst),
-    .binary_pixel(binary_pixel),
-    .png_pixel(png_pixel),
-    .png_valid(png_valid)
+    .binary_image_pixel(binary_image_pixel),
+    .png_pixel_r(png_pixel_r),
+    .png_pixel_g(png_pixel_g),
+    .png_pixel_b(png_pixel_b)
   );
 
-  always begin
-    #5 clk = ~clk;
-  end
+  reg [31:0] file_handle;
 
   initial begin
     clk = 0;
+    forever #5 clk = ~clk;
+  end
+
+  initial begin
     rst = 1;
-    binary_pixel = 8'hFF;
     #10 rst = 0;
   end
 
   initial begin
-    binary_pixel = 8'hFF;
-    #100;
-    if (png_valid) begin
-      $display("Test Case 1: Valid PNG Pixel: %h", png_pixel);
-    end else begin
-      $display("Test Case 1: No valid PNG pixel data");
-    end
-  end
+    #30;
+    file_handle = $fopen("output_image.txt", "w");
 
-  initial begin
-    binary_pixel = 8'hAA;
-    #100;
-    if (png_valid) begin
-      $display("Test Case 2: Valid PNG Pixel: %h", png_pixel);
-    end else begin
-      $display("Test Case 2: No valid PNG pixel data");
-    end
-  end
+    repeat (256*256) begin  // Update for 256x256 image
+      #50;
+      binary_image_pixel = $random;
 
-  initial begin
-    binary_pixel = 8'h55;
-    #100;
-    if (png_valid) begin
-      $display("Test Case 3: Valid PNG Pixel: %h", png_pixel);
-    end else begin
-      $display("Test Case 3: No valid PNG pixel data");
+      #10 $display("Time=%t, Test Case: PNG Pixel R=%h, G=%h, B=%h",
+                $time, png_pixel_r, png_pixel_g, png_pixel_b);
+
+      $fdisplay(file_handle, "%t %h %h %h", $time, png_pixel_r, png_pixel_g, png_pixel_b);
     end
 
-    $finish;
+    $fclose(file_handle);
+    #100 $finish;
   end
 
 endmodule
